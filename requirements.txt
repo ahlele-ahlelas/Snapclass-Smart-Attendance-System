@@ -8,4 +8,4 @@ supabase
 bcrypt
 segno
 pillow
-streamlit
+streamlit>=1.35.0

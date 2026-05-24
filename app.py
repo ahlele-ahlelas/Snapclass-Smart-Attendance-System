@@ -1,5 +1,8 @@
 import streamlit as st
 
+st.write("APP STARTING")
+print("APP STARTING")
+
 from src.screens.teacher_screen import teacher_screen
 from src.screens.student_screen import student_screen
 from src.screens.home_screen import home_screen
@@ -8,7 +11,7 @@ from src.components.dialog_enroll import enroll_subject_dialog
 
 def main():
     st.set_page_config(page_title="SnapClass - Smart Attendance System",
-                    page_icon="D:\\Snapclass\\logo.png", layout="centered")
+                    page_icon="logo.png", layout="centered")
     if 'login_state' not in st.session_state:
         st.session_state.login_state = None
         

@@ -1,7 +1,7 @@
 numpy
 pandas
 scikit-learn
-dlib
+dlib==19.24.6
 face-recognition
 setuptools<70.0.0
 supabase

@@ -10,7 +10,7 @@ from src.databse.db import check_teacher_exists, create_teacher, teacher_login,g
 from src.components.dialog_create_subject import create_subject_dialog
 from src.components.dialog_share_subject import share_subject_dialog
 from src.components.dialog_photo_add import add_photos_dialog
-from src.components.dialog_attendence_result import attendence_result_dialog
+from src.components.dialog_attendence_result import show_attendence_result
 from src.components.dialog_voice_attendance import voice_attendence_dialog
 import numpy as np
 import pandas as pd
@@ -102,7 +102,7 @@ def teacher_tab_take_attendance():
                             "timestamp": current_timestamp,
                             "is_present": is_present
                         })
-                attendence_result_dialog(pd.DataFrame(results),attendence_to_log)
+                show_attendence_result(pd.DataFrame(results),attendence_to_log)
     with c3:
         if st.button('Voice attendance',type='primary',width='stretch',icon="🎤"):
             voice_attendence_dialog(selected_subject_id)

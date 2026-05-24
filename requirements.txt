@@ -2,7 +2,6 @@ numpy
 pandas
 scikit-learn
 dlib
-cmake
 face-recognition
 setuptools<70.0.0
 supabase

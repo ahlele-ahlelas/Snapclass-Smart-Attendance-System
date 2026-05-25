@@ -1,85 +1,68 @@
-import dlib
 import numpy as np
-import face_recognition_models
+from deepface import DeepFace
 from sklearn.svm import SVC
 import streamlit as st
 from src.databse.db import get_all_students
 
-@st.cache_resource
-def load_dlib_models():
-    detector = dlib.get_frontal_face_detector()
-    sp = dlib.shape_predictor(face_recognition_models.pose_predictor_model_location())
-    facerec = dlib.face_recognition_model_v1(face_recognition_models.face_recognition_model_location())
-    return detector, sp, facerec
-
 def get_face_embedding(image_np):
-    detector, sp, facerec = load_dlib_models()
-    faces = detector(image_np, 1)
-    
-    encoding = []
-    for face in faces:
-        shape = sp(image_np, face)
-        face_descriptor = facerec.compute_face_descriptor(image_np, shape) #128-d vector embedding
-        encoding.append(np.array(face_descriptor))
-    
-    return encoding
-
+    try:
+        results = DeepFace.represent(
+            image_np,
+            model_name="Facenet",
+            enforce_detection=False,
+            detector_backend="retinaface"
+        )
+        return [np.array(r["embedding"]) for r in results]
+    except Exception:
+        return []
 
 def get_trained_model():
-    X = []
-    y = []
-    
+    X, y = [], []
     student_db = get_all_students()
-    
     if not student_db:
         return None
     for student in student_db:
         embedding = student.get("face_embedding")
         if embedding:
-            X.append(embedding)
+            emb = np.array(embedding)
+            emb = emb / (np.linalg.norm(emb) + 1e-10)
+            X.append(emb.tolist())
             y.append(student["student_id"])
-        
     if len(X) == 0:
         return 0
-    
     clf = SVC(kernel='linear', probability=True, class_weight='balanced')
     try:
         clf.fit(X, y)
     except ValueError:
         pass
-    
-    return {'clf': clf,'X': X, 'y': y}
-    
+    return {'clf': clf, 'X': X, 'y': y}
+
 def train_classifier():
     st.cache_resource.clear()
-    model_data = get_trained_model()
-    return bool(model_data)
+    return bool(get_trained_model())
 
 def predict_attendence(class_image_np):
     encodings = get_face_embedding(class_image_np)
     detected_students = {}
     model_data = get_trained_model()
-    
     if not model_data:
-        return detected_students,{}, len(encodings)
-    
+        return detected_students, {}, len(encodings)
     clf = model_data['clf']
     X_train = model_data['X']
     y_train = model_data['y']
-    
     all_students = sorted(list(set(y_train)))
-    
-    resemblance_threshold = 0.45
+    # Normalise before comparing so Euclidean distance is in [0, 2] regardless of embedding scale
+    # Same person ~<0.7, different person ~>1.0 after normalisation
+    resemblance_threshold = 0.9
     for encoding in encodings:
+        norm_enc = encoding / (np.linalg.norm(encoding) + 1e-10)
         if len(all_students) >= 2:
-            predicted_id = clf.predict([encoding])[0]
+            predicted_id = clf.predict([norm_enc])[0]
         else:
             predicted_id = all_students[0]
-
-        student_embedding = X_train[y_train.index(predicted_id)]
-        best_match_score = np.linalg.norm(student_embedding - encoding)
-
+        stored = np.array(X_train[y_train.index(predicted_id)])
+        norm_stored = stored / (np.linalg.norm(stored) + 1e-10)
+        best_match_score = np.linalg.norm(norm_stored - norm_enc)
         if best_match_score <= resemblance_threshold:
-            detected_students[predicted_id] = True
+            detected_students[int(predicted_id)] = True
     return detected_students, model_data, len(encodings)
-    

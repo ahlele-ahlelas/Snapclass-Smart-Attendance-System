@@ -1,8 +1,9 @@
 numpy
 pandas
 scikit-learn
-dlib==19.24.6
-face-recognition
+deepface
+tf-keras
+opencv-python-headless
 setuptools<70.0.0
 supabase
 bcrypt

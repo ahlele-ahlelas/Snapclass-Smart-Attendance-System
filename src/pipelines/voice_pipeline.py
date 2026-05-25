@@ -1,17 +1,27 @@
 import streamlit as st
-from resemblyzer import VoiceEncoder,preprocess_wav
 import numpy as np
 import io
-import librosa
+
+try:
+    from resemblyzer import VoiceEncoder, preprocess_wav
+    import librosa
+    _VOICE_AVAILABLE = True
+except ImportError:
+    _VOICE_AVAILABLE = False
 
 @st.cache_resource
 def load_voice_encoder():
+    if not _VOICE_AVAILABLE:
+        return None
     return VoiceEncoder()
 
 def get_voice_embedding(audio_file):
+    if not _VOICE_AVAILABLE:
+        st.error("Voice recognition is not available in this environment.")
+        return None
     try:
         encoder = load_voice_encoder()
-        audio, sr = librosa.load(io.BytesIO(audio_file), sr=16000) #sr is in Khz, SAMPLE RATE is 16KHz for resemblyzer
+        audio, sr = librosa.load(io.BytesIO(audio_file), sr=16000)
         wav = preprocess_wav(audio, sr)
         embedding = encoder.embed_utterance(wav)
         return embedding.tolist()
@@ -38,6 +48,9 @@ def identify_speaker(new_embedding, candidates_dict, threshold=0.65):
     return None, best_score
 
 def process_bulk_audio(audio_file, candidates_dict, threshold=0.65):
+    if not _VOICE_AVAILABLE:
+        st.error("Voice recognition is not available in this environment.")
+        return {}
     try:
         encoder = load_voice_encoder()
         audio, sr = librosa.load(io.BytesIO(audio_file), sr=16000)

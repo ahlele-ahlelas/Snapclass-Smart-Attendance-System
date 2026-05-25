@@ -4,7 +4,6 @@ scikit-learn
 deepface
 tf-keras
 opencv-python-headless
-setuptools<70.0.0
 supabase
 bcrypt
 segno

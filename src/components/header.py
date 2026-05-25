@@ -1,11 +1,15 @@
 import streamlit as st
 import base64
+from pathlib import Path
+
+_LOGO = Path(__file__).parent.parent.parent / "d0ebd99fd87cae9bdca2acfe647bcbab_icon.webp"
+
+def _encoded_logo():
+    with open(_LOGO, "rb") as f:
+        return base64.b64encode(f.read()).decode()
 
 def header_home():
-    logo_path = r"D:\Snapclass\d0ebd99fd87cae9bdca2acfe647bcbab_icon.webp"
-
-    with open(logo_path, "rb") as image_file:
-        encoded = base64.b64encode(image_file.read()).decode()
+    encoded = _encoded_logo()
 
     st.markdown(f"""
         <div style="text-align:center;">
@@ -15,12 +19,9 @@ def header_home():
             </h1>
         </div>
     """, unsafe_allow_html=True)
-    
+
 def header_dashboard():
-    logo_path = r"D:\Snapclass\d0ebd99fd87cae9bdca2acfe647bcbab_icon.webp"
-    
-    with open(logo_path, "rb") as image_file:
-        encoded = base64.b64encode(image_file.read()).decode()
+    encoded = _encoded_logo()
     
     st.markdown(f"""
         <div style="display:flex; align-items:center; gap: 15px; margin:0;">
